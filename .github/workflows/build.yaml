@@ -1,0 +1,23 @@
+name: Build Image
+on: [ push ]
+
+env:
+  REGISTRY_USER: kingsleyzissou
+  IMAGE_REGISTRY: ghcr.io/kingsleyzissou
+
+jobs:
+  build:
+    name: Build container image
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Image
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: devcontainer
+        tags: fedora
+        containerfiles: |
+          ./Containerfile
