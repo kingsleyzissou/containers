@@ -18,8 +18,10 @@ jobs:
         include:
           - target: fedora
             base-image: quay.io/fedora/fedora-toolbox:41
+            port: 9000
           - target: centos
             base-image: quay.io/toolbx-images/centos-toolbox:stream9
+            port: 9001
 
     steps:
     - name: Log in to ghcr.io
@@ -41,8 +43,9 @@ jobs:
       with:
         image: devcontainer
         tags: ${{ matrix.target }}
-        containerfiles: |
-          ./Containerfile
+        containerfiles: ./Containerfile
+        build-args: |
+          COCKPIT_PORT=${{ matrix.port }}
 
     - name: Push to ghcr.io
       id: push-to-registry
