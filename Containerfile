@@ -7,6 +7,12 @@
 FROM base-image
 
 ##########################################################
+##### build args
+##########################################################
+ARG COCKPIT_PORT
+ARG COCKPIT_CONFFILE=/etc/systemd/system/cockpit.socket.d/listen.conf
+
+##########################################################
 ##### langauges
 ##########################################################
 RUN dnf install -y \
@@ -76,4 +82,15 @@ RUN dnf clean all
 ##########################################################
 ##### wheel no password
 ##########################################################
-COPY wheel-nopassword /etc/sudoers.d/.
+RUN echo "%wheel        ALL=(ALL)       NOPASSWD: ALL" > /etc/sudoers.d/wheel-nopassword
+
+##########################################################
+##### cockpit port
+##########################################################
+# since we have multiple containers, we don't want the
+# cockpit ports to conflict, set these via a build arg
+RUN mkdir -p $(dirname $COCKPIT_CONFFILE)
+RUN echo "[Socket]" >> $COCKPIT_CONFFILE
+RUN echo "ListenStream=" >> $COCKPIT_CONFFILE
+RUN echo "ListenStream=$COCKPIT_PORT" >> $COCKPIT_CONFFILE
+RUN systemctl enable cockpit.socket
