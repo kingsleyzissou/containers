@@ -1,5 +1,5 @@
 name: Build Image
-on: [ push ]
+on: [ pull_request ]
 
 env:
   REGISTRY_USER: kingsleyzissou
@@ -9,15 +9,28 @@ jobs:
   build:
     name: Build container image
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: fedora
+            base-image: quay.io/fedora/fedora-toolbox:41
+          - target: centos
+            base-image: quay.io/toolbx-images/centos-toolbox:stream9
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Tag base-image
+      id: tag-base
+      run: |
+        podman pull ${{ matrix.base-image }}
+        podman tag ${{ matrix.base-image }} base-image
 
     - name: Build Image
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
         image: devcontainer
-        tags: fedora
+        tags: ${{ matrix.target }}
         containerfiles: |
           ./Containerfile

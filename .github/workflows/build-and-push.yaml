@@ -11,27 +11,38 @@ env:
 
 jobs:
   build:
-    name: Build and push image
+    name: Build and push container image
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: fedora
+            base-image: quay.io/fedora/fedora-toolbox:41
+          - target: centos
+            base-image: quay.io/toolbx-images/centos-toolbox:stream9
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Build Image
-      id: build-image
-      uses: redhat-actions/buildah-build@v2
-      with:
-        image: devcontainer
-        tags: fedora
-        containerfiles: |
-          ./Containerfile
-
     - name: Log in to ghcr.io
       uses: redhat-actions/podman-login@v1
       with:
         registry: ${{ env.IMAGE_REGISTRY }}
         username: ${{ env.REGISTRY_USER }}
         password: ${{ secrets.AUTH_TOKEN }}
+
+    - name: Tag base-image
+      id: tag-base
+      run: |
+        podman pull ${{ matrix.base-image }}
+        podman tag ${{ matrix.base-image }} base-image
+
+    - name: Build Image
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: devcontainer
+        tags: ${{ matrix.target }}
+        containerfiles: |
+          ./Containerfile
 
     - name: Push to ghcr.io
       id: push-to-registry
