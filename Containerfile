@@ -49,6 +49,14 @@ RUN dnf install -y \
   osbuild-composer
 
 ##########################################################
+##### openscap
+##########################################################
+RUN dnf install -y \
+  openscap-scanner \
+  openscap-utils \
+  scap-security-guide
+
+##########################################################
 ##### project dependencies
 ##########################################################
 RUN dnf install -y \
